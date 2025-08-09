@@ -1,6 +1,6 @@
 # 🖼️ Image Converter - Backend
 
-![Image Converter Homepage](https://app.devin.ai/attachments/57cda6b4-2b33-4c03-a74a-bf70e6355e3d/localhost_3000_134010.png)
+![Image Converter Homepage](./change.png)
 
 ## 🚀 Spring Boot Backend for Image Converter
 
