@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useDropzone } from "react-dropzone";
-import { API_URL } from "../../env";
+import { api } from "../../lib/axios";
 import { Download, Upload, Wand2, AlertTriangle, Eye, CheckCircle } from "lucide-react";
 
 const FORMATS = ["jpg","jpeg","png","webp","avif","heic","tiff","bmp","gif","svg"];
@@ -39,22 +39,17 @@ export default function ConvertPage() {
       form.append('quality', String(quality));
       try {
         console.log('Starting conversion for:', j.file.name, 'to', target);
-        console.log('API_URL:', API_URL);
         console.log('Token present:', !!token);
         
-        const res = await fetch(`${API_URL}/api/convert`, {
-          method: 'POST',
-          headers: token ? ({ Authorization: `Bearer ${token}` } as HeadersInit) : undefined,
-          body: form,
+        const res = await api.post('/api/convert', form, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          responseType: 'blob',
         });
         
         console.log('Response status:', res.status);
-        console.log('Response ok:', res.ok);
+        console.log('Response ok:', res.status < 400);
         
-        if (res.status === 401) throw new Error('Please sign in with Google to convert.');
-        if (res.status === 402) throw new Error('Daily limit reached (20 free conversions). Sign in and subscribe for unlimited conversions.');
-        if (!res.ok) throw new Error(`Conversion failed: ${res.status}`);
-        const blob = await res.blob();
+        const blob = res.data;
         const url = URL.createObjectURL(blob);
         console.log('Conversion successful, blob URL created:', url);
         console.log('Current job object:', j);
@@ -76,7 +71,17 @@ export default function ConvertPage() {
         });
       } catch (e: any) {
         console.error('Conversion error:', e);
-        setJobs((prev) => prev.map(x => x === j ? { ...x, status: 'error', error: e.message } : x));
+        let errorMessage = e.message;
+        if (e.response?.status === 401) {
+          errorMessage = 'Please sign in with Google to convert.';
+        } else if (e.response?.status === 402) {
+          errorMessage = 'Daily limit reached (20 free conversions). Sign in and subscribe for unlimited conversions.';
+        } else if (e.response?.status === 403) {
+          errorMessage = 'CSRF token missing or invalid. Please refresh the page.';
+        } else if (e.response) {
+          errorMessage = `Conversion failed: ${e.response.status}`;
+        }
+        setJobs((prev) => prev.map(x => x === j ? { ...x, status: 'error', error: errorMessage } : x));
       }
     }
   };
