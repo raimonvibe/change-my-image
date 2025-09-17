@@ -3,6 +3,8 @@ package com.raimonvibe.imageconverter.image;
 import com.raimonvibe.imageconverter.user.User;
 import com.raimonvibe.imageconverter.user.UserRepository;
 import com.raimonvibe.imageconverter.user.UserService;
+import com.raimonvibe.imageconverter.user.AnonymousUserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -27,13 +29,15 @@ public class ConvertController {
   private final ImageService imageService = new ImageService();
   private final UserRepository userRepository;
   private final UserService userService;
+  private final AnonymousUserService anonymousUserService;
 
   @Value("${app.stripe.pricePackSize:20}")
   private int packSize;
 
-  public ConvertController(UserRepository userRepository, UserService userService) {
+  public ConvertController(UserRepository userRepository, UserService userService, AnonymousUserService anonymousUserService) {
     this.userRepository = userRepository;
     this.userService = userService;
+    this.anonymousUserService = anonymousUserService;
   }
 
   @GetMapping("/formats")
@@ -47,16 +51,21 @@ public class ConvertController {
       @RequestParam("to") @NotBlank String toFormat,
       @RequestParam(value = "quality", required = false) @Min(1) @Max(100) Integer quality,
       Principal principal,
+      HttpServletRequest request,
       HttpServletResponse response
   ) throws IOException, InterruptedException {
-    if (principal == null) {
-      response.sendError(401, "Unauthorized");
-      return;
+    
+    boolean allowed = false;
+    
+    if (principal != null) {
+      String email = principal.getName();
+      User user = userRepository.findByEmail(email).orElseThrow();
+      allowed = userService.consumeOneConversion(user, packSize);
+    } else {
+      String clientIp = getClientIpAddress(request);
+      allowed = anonymousUserService.consumeOneConversion(clientIp, 20);
     }
-    String email = principal.getName();
-    User user = userRepository.findByEmail(email).orElseThrow();
-
-    boolean allowed = userService.consumeOneConversion(user, packSize);
+    
     if (!allowed) {
       response.sendError(402, "Payment Required");
       return;
@@ -73,5 +82,13 @@ public class ConvertController {
       tmp.delete();
       out.delete();
     }
+  }
+
+  private String getClientIpAddress(HttpServletRequest request) {
+    String xForwardedFor = request.getHeader("X-Forwarded-For");
+    if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+      return xForwardedFor.split(",")[0].trim();
+    }
+    return request.getRemoteAddr();
   }
 }
