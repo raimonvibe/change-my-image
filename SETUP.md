@@ -62,7 +62,7 @@ Stripe (Test mode):
 
 Image conversion:
 - Supported formats include: jpg, jpeg, png, webp, avif, heic, tiff, bmp, gif, svg
-- Limits: 5 free conversions per user per day; $1.98/month for unlimited conversions with optional monthly renewal.
+- Limits: 20 free conversions per user per day; $1.98/month for unlimited conversions with optional monthly renewal.
 - Conversion endpoint: POST /api/convert (multipart/form-data) with fields: file, to, quality
 
 Notes:

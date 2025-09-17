@@ -19,8 +19,8 @@ public class BillingController {
   @Value("${app.stripe.priceUsd:1.98}")
   private Double priceUsd;
 
-  @Value("${app.stripe.pricePackSize:unlimited}")
-  private String packSize;
+  @Value("${app.stripe.pricePackSize:5}")
+  private Integer packSize;
 
   @PostMapping("/checkout")
   public ResponseEntity<Map<String, Object>> createCheckout(@RequestParam("successUrl") String successUrl, @RequestParam("cancelUrl") String cancelUrl, java.security.Principal principal) throws Exception {
