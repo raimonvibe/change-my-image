@@ -7,7 +7,7 @@ import { API_URL } from '../../env';
 
 export default function BillingPage() {
   const { data: session, status } = useSession();
-  const token = (session as any)?.idToken as string | undefined;
+  const token = (session as { idToken?: string } | null)?.idToken;
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);

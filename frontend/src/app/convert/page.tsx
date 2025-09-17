@@ -20,7 +20,7 @@ export default function ConvertPage() {
   const [quality, setQuality] = useState(85);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
-  const token = (session as any)?.idToken;
+  const token = (session as { idToken?: string } | null)?.idToken;
 
   const onDrop = (acceptedFiles: File[]) => {
     const newJobs = acceptedFiles.map((f) => ({ file: f, status: 'queued' } as Job));
@@ -40,15 +40,15 @@ export default function ConvertPage() {
       try {
         console.log('Starting conversion for:', j.file.name, 'to', target);
         console.log('Token present:', !!token);
-        
+
         const res = await api.post('/api/convert', form, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           responseType: 'blob',
         });
-        
+
         console.log('Response status:', res.status);
         console.log('Response ok:', res.status < 400);
-        
+
         const blob = res.data;
         const url = URL.createObjectURL(blob);
         console.log('Conversion successful, blob URL created:', url);
@@ -69,17 +69,23 @@ export default function ConvertPage() {
           console.log('Updating refresh key from', prev, 'to', prev + 1);
           return prev + 1;
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error('Conversion error:', e);
-        let errorMessage = e.message;
-        if (e.response?.status === 401) {
-          errorMessage = 'Please sign in with Google to convert.';
-        } else if (e.response?.status === 402) {
-          errorMessage = 'Daily limit reached (20 free conversions). Sign in and subscribe for unlimited conversions.';
-        } else if (e.response?.status === 403) {
-          errorMessage = 'CSRF token missing or invalid. Please refresh the page.';
-        } else if (e.response) {
-          errorMessage = `Conversion failed: ${e.response.status}`;
+        let errorMessage = 'Unknown error';
+        if (e instanceof Error) {
+          errorMessage = e.message;
+        }
+        if (e && typeof e === 'object' && 'response' in e) {
+          const response = (e as { response?: { status?: number } }).response;
+          if (response?.status === 401) {
+            errorMessage = 'Please sign in with Google to convert.';
+          } else if (response?.status === 402) {
+            errorMessage = 'Daily limit reached (20 free conversions). Sign in and subscribe for unlimited conversions.';
+          } else if (response?.status === 403) {
+            errorMessage = 'CSRF token missing or invalid. Please refresh the page.';
+          } else if (response) {
+            errorMessage = `Conversion failed: ${response.status}`;
+          }
         }
         setJobs((prev) => prev.map(x => x === j ? { ...x, status: 'error', error: errorMessage } : x));
       }
@@ -164,14 +170,14 @@ export default function ConvertPage() {
               <div className="flex items-center gap-2">
                 {j.status === 'done' && j.url && (
                   <>
-                    <button 
+                    <button
                       onClick={() => window.open(j.url, '_blank')}
                       className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-3 py-1.5 text-slate-700 hover:bg-slate-200 text-sm"
                     >
                       <Eye size={14} /> Preview
                     </button>
-                    <a 
-                      href={j.url} 
+                    <a
+                      href={j.url}
                       download={`${j.file.name.split('.')[0]}_converted.${target}`}
                       className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-white hover:bg-emerald-700 text-sm"
                     >
