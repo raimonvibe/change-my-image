@@ -28,7 +28,7 @@ public class ConvertController {
   private final UserRepository userRepository;
   private final UserService userService;
 
-  @Value("${app.stripe.pricePackSize:5}")
+  @Value("${app.stripe.pricePackSize:20}")
   private int packSize;
 
   public ConvertController(UserRepository userRepository, UserService userService) {

@@ -19,7 +19,7 @@ public class UserController {
     if (principal == null) return Map.of("authenticated", false);
     var user = userRepository.findByEmail(principal.getName()).orElseThrow();
     boolean reset = !LocalDate.now().equals(user.getLastFreeReset());
-    int freeRemaining = (reset ? 5 : Math.max(0, 5 - user.getFreeUsedToday()));
+    int freeRemaining = (reset ? 20 : Math.max(0, 20 - user.getFreeUsedToday()));
     return Map.of(
         "authenticated", true,
         "email", user.getEmail(),

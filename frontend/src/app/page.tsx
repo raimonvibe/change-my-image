@@ -13,6 +13,7 @@ export default function HomePage() {
         <AuthButtons />
       </div>
       <p className="text-slate-600">Convert images between PNG, JPG, WEBP, AVIF, HEIC, TIFF, BMP, GIF, SVG and more. 20 free conversions per day. $1.98 = 20 extra conversions.</p>
+      <p className="text-slate-600">Convert images between PNG, JPG, WEBP, AVIF, HEIC, TIFF, BMP, GIF, SVG and more. 20 free conversions per day. $1.98/month for unlimited conversions.</p>
       <div className="grid md:grid-cols-3 gap-4">
         {[
           "Classy and trustworthy light blue UI",
