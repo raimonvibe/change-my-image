@@ -19,8 +19,8 @@ server:
 
 app:
   stripe:
-    pricePackSize: 5
-    priceUsd: 1.00
+    pricePackSize: 20
+    priceUsd: 1.98
     webhookSecret: ${STRIPE_WEBHOOK_SECRET:}
     publishableKey: ${STRIPE_PUBLISHABLE_KEY:}
     secretKey: ${STRIPE_SECRET_KEY:}
