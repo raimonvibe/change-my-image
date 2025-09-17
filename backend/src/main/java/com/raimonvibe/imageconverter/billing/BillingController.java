@@ -16,11 +16,11 @@ public class BillingController {
   @Value("${app.stripe.secretKey:}")
   private String stripeSecretKey;
 
-  @Value("${app.stripe.priceUsd:1.0}")
+  @Value("${app.stripe.priceUsd:1.98}")
   private Double priceUsd;
 
-  @Value("${app.stripe.pricePackSize:5}")
-  private Integer packSize;
+  @Value("${app.stripe.pricePackSize:unlimited}")
+  private String packSize;
 
   @PostMapping("/checkout")
   public ResponseEntity<Map<String, Object>> createCheckout(@RequestParam("successUrl") String successUrl, @RequestParam("cancelUrl") String cancelUrl, java.security.Principal principal) throws Exception {
@@ -28,7 +28,7 @@ public class BillingController {
     long priceCents = Math.round(priceUsd * 100);
     SessionCreateParams.Builder builder =
         SessionCreateParams.builder()
-            .setMode(SessionCreateParams.Mode.PAYMENT)
+            .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
             .setSuccessUrl(successUrl)
             .setCancelUrl(cancelUrl)
             .addLineItem(
@@ -39,11 +39,14 @@ public class BillingController {
                             .setCurrency("usd")
                             .setUnitAmount(priceCents)
                             .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                .setName(packSize + " extra conversions")
+                                .setName("Unlimited conversions monthly subscription")
+                                .build())
+                            .setRecurring(SessionCreateParams.LineItem.PriceData.Recurring.builder()
+                                .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
                                 .build())
                             .build())
                     .build())
-            .putMetadata("packSize", packSize.toString());
+            .putMetadata("subscriptionType", "unlimited_monthly");
     if (principal != null) {
       builder.setCustomerEmail(principal.getName());
     }
