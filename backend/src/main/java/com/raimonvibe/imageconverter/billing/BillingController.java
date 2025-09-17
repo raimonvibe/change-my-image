@@ -81,7 +81,7 @@ public class BillingController {
 
       SessionCreateParams.LineItem.PriceData.ProductData product =
           SessionCreateParams.LineItem.PriceData.ProductData.builder()
-              .setName(packSize + " extra conversions")
+              .setName("Unlimited Image Conversions")
               .build();
 
       SessionCreateParams.LineItem.PriceData priceData =
@@ -89,10 +89,15 @@ public class BillingController {
               .setCurrency(currency.toLowerCase())
               .setUnitAmount(unitAmountCents)
               .setProductData(product)
+              .setRecurring(
+                  SessionCreateParams.LineItem.PriceData.Recurring.builder()
+                      .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
+                      .build()
+              )
               .build();
 
       SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
-          .setMode(SessionCreateParams.Mode.PAYMENT)
+          .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
           .setSuccessUrl(validatedSuccess)
           .setCancelUrl(validatedCancel)
           .addLineItem(
@@ -101,7 +106,7 @@ public class BillingController {
                   .setPriceData(priceData)
                   .build()
           )
-          .putMetadata("packSize", Integer.toString(packSize));
+          .putMetadata("subscription", "unlimited_conversions");
 
       // Optionally add customer email if authenticated principal is present
       if (principal != null && StringUtils.hasText(principal.getName())) {

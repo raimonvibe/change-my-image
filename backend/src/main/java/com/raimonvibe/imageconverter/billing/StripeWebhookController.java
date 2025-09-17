@@ -42,10 +42,12 @@ public class StripeWebhookController {
       if (session != null) {
         String email = session.getCustomerDetails() != null ? session.getCustomerDetails().getEmail() : null;
         Map<String, String> metadata = session.getMetadata();
-        int packSize = metadata != null && metadata.get("packSize") != null ? Integer.parseInt(metadata.get("packSize")) : 5;
-        if (email != null) {
-          User user = userService.ensureUserByEmail(email);
-          userService.addCredits(user, packSize, "purchase_pack");
+        
+        if (metadata != null && "unlimited_conversions".equals(metadata.get("subscription"))) {
+          if (email != null) {
+            User user = userService.ensureUserByEmail(email);
+            userService.addCredits(user, 0, "subscription_activated");
+          }
         }
       }
     }
