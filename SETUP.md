@@ -56,13 +56,13 @@ Google Sign-In:
 
 Stripe (Test mode):
 - Set STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY in backend env
-- Create a Price for $1 that represents a pack of 5 conversions (handled as quantity credits server-side)
+- Create a Price for $1.98/month that represents unlimited conversions subscription (handled as monthly recurring billing server-side)
 - Set STRIPE_WEBHOOK_SECRET and run stripe listen --forward-to http://localhost:8080/api/stripe/webhook (optional for local)
 - The backend’s BillingController creates a Checkout Session; on successful payment, credits are added via webhook.
 
 Image conversion:
 - Supported formats include: jpg, jpeg, png, webp, avif, heic, tiff, bmp, gif, svg
-- Limits: 5 free conversions per user per day; $1 buys 5 extra conversions.
+- Limits: 20 free conversions per user per day; $1.98/month for unlimited conversions with optional monthly renewal.
 - Conversion endpoint: POST /api/convert (multipart/form-data) with fields: file, to, quality
 
 Notes:

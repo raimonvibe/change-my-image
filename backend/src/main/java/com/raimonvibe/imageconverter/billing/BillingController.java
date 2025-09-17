@@ -32,6 +32,8 @@ public class BillingController {
   @Value("${app.stripe.secretKey:}")
   private String stripeSecretKey;
 
+  @Value("${app.stripe.priceUsd:1.98}")
+  private Double priceUsd;
   @Value("${app.stripe.priceUsd:1.0}")
   private double priceUsd; // $ per pack
 
@@ -56,6 +58,31 @@ public class BillingController {
       currency = "usd";
     }
     Stripe.apiKey = stripeSecretKey;
+    long priceCents = Math.round(priceUsd * 100);
+    SessionCreateParams.Builder builder =
+        SessionCreateParams.builder()
+            .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+            .setSuccessUrl(successUrl)
+            .setCancelUrl(cancelUrl)
+            .addLineItem(
+                SessionCreateParams.LineItem.builder()
+                    .setQuantity(1L)
+                    .setPriceData(
+                        SessionCreateParams.LineItem.PriceData.builder()
+                            .setCurrency("usd")
+                            .setUnitAmount(priceCents)
+                            .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                .setName("Unlimited conversions monthly subscription")
+                                .build())
+                            .setRecurring(SessionCreateParams.LineItem.PriceData.Recurring.builder()
+                                .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
+                                .build())
+                            .build())
+                    .build())
+            .putMetadata("subscriptionType", "unlimited_monthly");
+    if (principal != null) {
+      builder.setCustomerEmail(principal.getName());
+
   }
 
   @PostMapping("/checkout")

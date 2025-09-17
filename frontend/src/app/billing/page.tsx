@@ -67,6 +67,10 @@ export default function BillingPage() {
       <h1 className="text-xl font-semibold text-sky-800">Pricing</h1>
 
       <div className="rounded-lg border bg-white p-6">
+        <div className="text-slate-700">20 free conversions per day.</div>
+        <div className="text-slate-700 mb-4">$1.98/month for unlimited conversions (optional monthly renewal).</div>
+        <button onClick={buy} className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
+          <CreditCard size={16} /> Subscribe
         <div className="text-slate-700">5 free conversions per day.</div>
         <div className="text-slate-700 mb-4">$1 = 5 additional conversions.</div>
 

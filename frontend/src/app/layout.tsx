@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "RaimonVibe Image Converter",
-  description: "Convert images across formats. 5 free/day, $1 per 5 more.",
+  description: "Convert images across formats. 20 free/day, $1.98/month unlimited.",
 };
 
 export default function RootLayout({
