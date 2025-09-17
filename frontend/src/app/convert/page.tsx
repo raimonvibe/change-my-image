@@ -43,7 +43,7 @@ export default function ConvertPage() {
           body: form,
         });
         if (res.status === 401) throw new Error('Please sign in with Google to convert.');
-        if (res.status === 402) throw new Error('Limit reached. Purchase more conversions for $1 = 5 images.');
+        if (res.status === 402) throw new Error('Limit reached. Subscribe for unlimited conversions.');
         if (!res.ok) throw new Error(`Conversion failed: ${res.status}`);
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
