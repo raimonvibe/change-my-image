@@ -6,13 +6,17 @@ import { CreditCard } from 'lucide-react';
 import { API_URL } from '../../env';
 
 export default function BillingPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const token = (session as any)?.idToken as string | undefined;
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const buy = useCallback(async () => {
+    if (!token) {
+      setErr('Please sign in to subscribe.');
+      return;
+    }
     setErr(null);
     setLoading(true);
 
@@ -24,7 +28,6 @@ export default function BillingPage() {
 
       const res = await fetch(`${API_URL}/api/billing/checkout?${params.toString()}`, {
         method: 'POST',
-        // Als je cookies/sessies gebruikt aan backend-zijde, laat dan 'include' staan.
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -33,12 +36,10 @@ export default function BillingPage() {
       });
 
       if (!res.ok) {
-        // Backend kan lege body teruggeven bij 4xx → lees als tekst om debug te helpen
         const text = await res.text().catch(() => '');
         throw new Error(`Checkout failed: ${res.status} ${res.statusText}${text ? ` — ${text}` : ''}`);
       }
 
-      // Happy path: JSON parsen
       let data: unknown;
       try {
         data = await res.json();
@@ -51,16 +52,19 @@ export default function BillingPage() {
         throw new Error('Missing checkout URL in response.');
       }
 
-      // Naar Stripe (of jouw checkout)
       window.location.assign(url);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Unknown error';
       setErr(message);
-      console.error('[billing] buy error:', e);
+      console.error('[billing] subscription error:', e);
     } finally {
       setLoading(false);
     }
   }, [token]);
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-4">
@@ -68,25 +72,23 @@ export default function BillingPage() {
 
       <div className="rounded-lg border bg-white p-6">
         <div className="text-slate-700">20 free conversions per day.</div>
-        <div className="text-slate-700 mb-4">$1.98 = 20 additional conversions.</div>
-        <button onClick={buy} className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
-          <CreditCard size={16} /> Buy pack
-        <div className="text-slate-700 mb-4">$1.98/month for unlimited conversions (optional monthly renewal).</div>
+        <div className="text-slate-700 mb-4">
+          Subscribe for unlimited conversions (see{' '}
+          <a href="https://x.ai/grok" className="text-sky-600 underline">
+            pricing details
+          </a>
+          ).
+        </div>
         <button
           onClick={buy}
-          disabled={loading}
+          disabled={loading || !token}
           className="inline-flex items-center gap-2 rounded-md bg-sky-600 px-4 py-2 text-white hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <CreditCard size={16} />
           {loading ? 'Processing…' : 'Subscribe'}
         </button>
 
-
-        {err && (
-          <p className="mt-3 text-sm text-red-600 break-words">
-            {err}
-          </p>
-        )}
+        {err && <p className="mt-3 text-sm text-red-600 break-words">{err}</p>}
       </div>
     </div>
   );
