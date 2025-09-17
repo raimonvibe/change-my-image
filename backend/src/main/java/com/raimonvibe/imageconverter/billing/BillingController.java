@@ -33,15 +33,20 @@ public class BillingController {
   private String stripeSecretKey;
 
   @Value("${app.stripe.priceUsd:1.98}")
-  private Double priceUsd;
-  @Value("${app.stripe.priceUsd:1.0}")
-  private double priceUsd; // $ per pack
+  private double priceUsd; // $ per pack, removed duplicate declaration
 
   @Value("${app.stripe.pricePackSize:5}")
   private int packSize;    // conversions per pack
 
   @Value("${app.stripe.currency:usd}")
   private String currency;
+
+  // Added fields for successUrl and cancelUrl to fix uninitialized variable issue
+  @Value("${app.stripe.successUrl:http://localhost:8080/success}")
+  private String successUrl;
+
+  @Value("${app.stripe.cancelUrl:http://localhost:8080/cancel}")
+  private String cancelUrl;
 
   @PostConstruct
   void initStripe() {
@@ -58,44 +63,19 @@ public class BillingController {
       currency = "usd";
     }
     Stripe.apiKey = stripeSecretKey;
-    long priceCents = Math.round(priceUsd * 100);
-    SessionCreateParams.Builder builder =
-        SessionCreateParams.builder()
-            .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-            .setSuccessUrl(successUrl)
-            .setCancelUrl(cancelUrl)
-            .addLineItem(
-                SessionCreateParams.LineItem.builder()
-                    .setQuantity(1L)
-                    .setPriceData(
-                        SessionCreateParams.LineItem.PriceData.builder()
-                            .setCurrency("usd")
-                            .setUnitAmount(priceCents)
-                            .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                .setName("Unlimited conversions monthly subscription")
-                                .build())
-                            .setRecurring(SessionCreateParams.LineItem.PriceData.Recurring.builder()
-                                .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
-                                .build())
-                            .build())
-                    .build())
-            .putMetadata("subscriptionType", "unlimited_monthly");
-    if (principal != null) {
-      builder.setCustomerEmail(principal.getName());
-
   }
 
   @PostMapping("/checkout")
   public ResponseEntity<?> createCheckout(
       @RequestParam("successUrl") @NotBlank String successUrl,
-      @RequestParam("cancelUrl")  @NotBlank String cancelUrl,
+      @RequestParam("cancelUrl") @NotBlank String cancelUrl,
       Principal principal,
       HttpServletRequest request
   ) {
     try {
       // Validate absolute http(s) URLs to avoid open redirects / invalid callbacks
       String validatedSuccess = validateAbsoluteHttpUrl(successUrl);
-      String validatedCancel  = validateAbsoluteHttpUrl(cancelUrl);
+      String validatedCancel = validateAbsoluteHttpUrl(cancelUrl);
 
       long unitAmountCents = Math.round(priceUsd * 100.0);
 
@@ -163,11 +143,11 @@ public class BillingController {
   }
 
   private static String safeStripeMessage(StripeException e) {
-    // voorkom dat we interne details lekken
+    // Prevent leaking internal details
     String msg = e.getMessage();
-    return (msg != null && msg.length() > 0) ? msg : "Stripe API call failed.";
+    return (msg != null && !msg.isEmpty()) ? msg : "Stripe API call failed.";
   }
 
-  // Response DTO (mooier dan Map)
+  // Response DTO
   public record CheckoutResponse(String id, String url) {}
 }
