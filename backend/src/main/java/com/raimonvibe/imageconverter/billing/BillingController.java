@@ -33,10 +33,7 @@ public class BillingController {
   private String stripeSecretKey;
 
   @Value("${app.stripe.priceUsd:1.98}")
-  private double priceUsd; // $ per pack, removed duplicate declaration
-
-  @Value("${app.stripe.pricePackSize:5}")
-  private int packSize;    // conversions per pack
+  private double priceUsd;
 
   @Value("${app.stripe.currency:usd}")
   private String currency;
@@ -55,9 +52,6 @@ public class BillingController {
     }
     if (priceUsd <= 0.0) {
       throw new IllegalStateException("Price must be > 0 (app.stripe.priceUsd).");
-    }
-    if (packSize < 1) {
-      throw new IllegalStateException("Pack size must be >= 1 (app.stripe.pricePackSize).");
     }
     if (!StringUtils.hasText(currency)) {
       currency = "usd";

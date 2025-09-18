@@ -31,8 +31,6 @@ public class ConvertController {
   private final UserService userService;
   private final AnonymousUserService anonymousUserService;
 
-  @Value("${app.stripe.pricePackSize:20}")
-  private int packSize;
 
   public ConvertController(UserRepository userRepository, UserService userService, AnonymousUserService anonymousUserService) {
     this.userRepository = userRepository;
@@ -60,7 +58,7 @@ public class ConvertController {
     if (principal != null) {
       String email = principal.getName();
       User user = userRepository.findByEmail(email).orElseThrow();
-      allowed = userService.consumeOneConversion(user, packSize);
+      allowed = userService.consumeOneConversion(user, 20);
     } else {
       String clientIp = getClientIpAddress(request);
       allowed = anonymousUserService.consumeOneConversion(clientIp, 20);
