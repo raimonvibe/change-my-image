@@ -2,6 +2,8 @@
 
 ![Image Converter Homepage](./change.png)
 
+<!-- Dummy change for testing PR creation capability -->
+
 ## 🚀 Next.js Frontend for Image Converter
 
 This is the frontend application for the Image Converter, built with Next.js 15, TypeScript, Tailwind CSS, and NextAuth for authentication. It provides a modern, responsive interface for converting images between various formats.
