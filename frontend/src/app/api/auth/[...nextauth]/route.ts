@@ -12,12 +12,12 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, account }) {
       if (account && account.id_token) {
-        (token as any).idToken = account.id_token;
+        (token as { idToken?: string }).idToken = account.id_token;
       }
       return token;
     },
     async session({ session, token }) {
-      (session as any).idToken = (token as any).idToken;
+      (session as { idToken?: string }).idToken = (token as { idToken?: string }).idToken;
       return session;
     },
   },

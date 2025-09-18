@@ -14,7 +14,7 @@ export default function AccountPage() {
   useEffect(() => {
     const fetchMe = async () => {
       if (!session) return;
-      const token = (session as any).idToken;
+      const token = (session as { idToken?: string }).idToken;
       const res = await fetch(`${API_URL}/api/user/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
